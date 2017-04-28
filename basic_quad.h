@@ -1,16 +1,13 @@
 #pragma once
 
-#include <cstddef>
-#include <type_traits>
-#include <iostream>
-
-#include <visionaray/detail/platform.h>
-#include <visionaray/aligned_vector.h>
-
 #include <visionaray/math/math.h>
+
+#include <visionaray/tags.h>
+#include <visionaray/get_normal.h>
+#include <visionaray/get_shading_normal.h>
+#include <visionaray/get_tex_coord.h>
 #include <visionaray/bvh.h> // FIXME needs to be included before intersector.h
 #include <visionaray/intersector.h>
-#include <visionaray/traverse.h>
 
 #ifndef CALCULATE_UV
 #define CALCULATE_UV 1

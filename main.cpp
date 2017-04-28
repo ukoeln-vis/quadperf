@@ -2,26 +2,19 @@
 // See the LICENSE file for details.
 
 #include <iostream>
-
-#include <cstring> // memset
-#include <memory>
 #include <random>
-#include <cassert>
-#include <algorithm>
-
-#include <Support/CmdLine.h>
-#include <Support/CmdLineUtil.h>
-
-#include <visionaray/detail/platform.h>
-
-#include <visionaray/aligned_vector.h>
-#include <visionaray/array.h>
-
-#include <common/timer.h>
 
 #ifdef __CUDACC__
 #include <thrust/device_vector.h>
 #endif
+
+#include <Support/CmdLine.h>
+#include <Support/CmdLineUtil.h>
+
+#include <visionaray/aligned_vector.h>
+#include <visionaray/array.h>
+#include <common/timer.h>
+#include <visionaray/traverse.h>
 
 #if VSNRAY_SIMD_ISA_GE(VSNRAY_SIMD_ISA_AVX512F)
 #define ALIGNMENT 64
@@ -35,9 +28,9 @@
 
 #define QUAD_NS visionaray
 
-#include "basic_quad.h"
 #include "swoop.h"
 #include "opt.h"
+#include "basic_quad.h"
 
 using namespace visionaray;
 

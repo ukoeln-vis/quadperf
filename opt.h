@@ -1,11 +1,13 @@
 #pragma once
 
 #include <visionaray/math/math.h>
-#include <visionaray/tags.h>
-#include <visionaray/bvh.h>
 
-#include <iostream>
-#include <iomanip>
+#include <visionaray/tags.h>
+#include <visionaray/get_normal.h>
+#include <visionaray/get_shading_normal.h>
+#include <visionaray/get_tex_coord.h>
+#include <visionaray/bvh.h> // FIXME needs to be included before intersector.h
+#include <visionaray/intersector.h>
 
 using namespace visionaray;
 
