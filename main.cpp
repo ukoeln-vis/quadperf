@@ -19,6 +19,7 @@
 #include <visionaray/texture/texture.h>
 
 #include <visionaray/aligned_vector.h>
+#include <visionaray/array.h>
 #include <visionaray/camera.h>
 #include <visionaray/cpu_buffer_rt.h>
 #include <visionaray/kernels.h> // for make_kernel_params(...)
@@ -195,7 +196,7 @@ struct benchmark
 
         for (size_t i=0; i<rays.size()/packet_size; i++)
         {
-            std::array<typename V2::value_type, packet_size> ra;
+            array<typename V2::value_type, packet_size> ra;
 
             for (size_t e=0; e<packet_size; ++e)
             {
