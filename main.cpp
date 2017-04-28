@@ -23,6 +23,14 @@
 #include <thrust/device_vector.h>
 #endif
 
+#if VSNRAY_SIMD_ISA_GE(VSNRAY_SIMD_ISA_AVX512F)
+#define ALIGNMENT 64
+#elif VSNRAY_SIMD_ISA_GE(VSNRAY_SIMD_ISA_AVX)
+#define ALIGNMENT 32
+#elif VSNRAY_SIMD_ISA_GE(VSNRAY_SIMD_ISA_SSE)
+#define ALIGNMENT 16
+#endif
+
 #define CALCULATE_UV 0
 
 #define QUAD_NS visionaray
@@ -57,16 +65,19 @@ struct benchmark
     typedef swoop_quad<float> quad_type_swoop;
     typedef basic_ray<float> ray_type;
 
-    aligned_vector<quad_type_opt, 32> quads_opt;
-    aligned_vector<quad_type_swoop, 32> quads_swoop;
-    aligned_vector<quad_type, 32> quads;
-    aligned_vector<ray_type, 32> rays;
+    aligned_vector<quad_type_opt, ALIGNMENT> quads_opt;
+    aligned_vector<quad_type_swoop, ALIGNMENT> quads_swoop;
+    aligned_vector<quad_type, ALIGNMENT> quads;
+    aligned_vector<ray_type, ALIGNMENT> rays;
 
 #if VSNRAY_SIMD_ISA_GE(VSNRAY_SIMD_ISA_SSE)
-    aligned_vector<basic_ray<simd::float4>, 32> rays_cpu4;
+    aligned_vector<basic_ray<simd::float4>, ALIGNMENT> rays_cpu4;
 #endif
 #if VSNRAY_SIMD_ISA_GE(VSNRAY_SIMD_ISA_AVX)
-    aligned_vector<basic_ray<simd::float8>, 32> rays_cpu8;
+    aligned_vector<basic_ray<simd::float8>, ALIGNMENT> rays_cpu8;
+#endif
+#if VSNRAY_SIMD_ISA_GE(VSNRAY_SIMD_ISA_AVX512F)
+    aligned_vector<basic_ray<simd::float16>, ALIGNMENT> rays_cpu16;
 #endif
 
     std::string name_;
@@ -155,9 +166,9 @@ struct benchmark
     template <typename V1, typename V2>
     void pack_rays(V1& rays_cpu, V2 const& rays)
     {
-        assert(rays.size() % 8 == 0);
-
         const size_t packet_size = simd::num_elements<typename V1::value_type::scalar_type>::value;
+
+        assert(rays.size() % packet_size == 0);
 
         for (size_t i=0; i<rays.size()/packet_size; i++)
         {
@@ -179,6 +190,9 @@ struct benchmark
 #endif
 #if VSNRAY_SIMD_ISA_GE(VSNRAY_SIMD_ISA_AVX)
         pack_rays(rays_cpu8, rays);
+#endif
+#if VSNRAY_SIMD_ISA_GE(VSNRAY_SIMD_ISA_AVX512F)
+        pack_rays(rays_cpu16, rays);
 #endif
 
 #ifdef __CUDACC__
@@ -214,7 +228,7 @@ struct benchmark
     }
 
     template <typename intersector, typename QT>
-    double run_test(aligned_vector<QT, 32> &quads)
+    double run_test(aligned_vector<QT, ALIGNMENT> &quads)
     {
         intersector i;
 
@@ -250,6 +264,21 @@ struct benchmark
             timer t;
 
             for (auto &r: rays_cpu8)
+            {
+                volatile auto hr = closest_hit(r, quads.begin(), quads.end(), i);
+            }
+
+            return t.elapsed();
+        }
+#endif
+
+#if VSNRAY_SIMD_ISA_GE(VSNRAY_SIMD_ISA_AVX512F)
+        else if (cpu_packet_size == 16)
+        {
+            timer t;
+
+            //#pragma omp parallel for
+            for (auto &r: rays_cpu16)
             {
                 volatile auto hr = closest_hit(r, quads.begin(), quads.end(), i);
             }
@@ -428,7 +457,7 @@ int main(int argc, char** argv)
             cl::Parser<>(), cmd, "cpu_packet_size",
             cl::ArgName("cpu_packet_size"),
             cl::init(cpu_packet_size),
-            cl::Desc("CPU simd packet size (1,4,8)")
+            cl::Desc("CPU simd packet size (1,4,8,16)")
             );
 
     try
