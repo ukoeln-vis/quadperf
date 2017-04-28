@@ -13,6 +13,7 @@ include(VisionarayAddTarget)
 include(VisionarayUseFramework)
 include(VisionarayUsePackage)
 
+set(VSNRAY_ENABLE_VIEWER FALSE CACHE BOOL "Visionaray viewer" FORCE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y")
 add_subdirectory(3rdparty/visionaray)
 
