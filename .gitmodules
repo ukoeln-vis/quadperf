@@ -1,0 +1,3 @@
+[submodule "3rdparty/visionaray"]
+	path = 3rdparty/visionaray
+	url = https://github.com/szellmann/visionaray.git
