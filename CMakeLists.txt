@@ -36,6 +36,14 @@ set(VISIONARAY_SOURCE_DIR ${VISIONARAY_DIR}/src)
 set(CMD_LINE_DIR ${VISIONARAY_DIR}//src/3rdparty/CmdLine)
 set(CMD_LINE_INCLUDE_DIR ${CMD_LINE_DIR}/include)
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 6.0)
+        # Disable warnings like:
+        # warning: ignoring attributes on template argument ‘__m128i
+        add_definitions(-Wno-ignored-attributes)
+    endif()
+endif()
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/3rdparty/visionaray/config)
 include_directories(${VISIONARAY_INCLUDE_DIR})
 include_directories(${VISIONARAY_SOURCE_DIR})
