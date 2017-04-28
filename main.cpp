@@ -9,29 +9,15 @@
 #include <cassert>
 #include <algorithm>
 
-#include <GL/glew.h>
-
 #include <Support/CmdLine.h>
 #include <Support/CmdLineUtil.h>
 
 #include <visionaray/detail/platform.h>
 
-#include <visionaray/texture/texture.h>
-
 #include <visionaray/aligned_vector.h>
 #include <visionaray/array.h>
-#include <visionaray/camera.h>
-#include <visionaray/cpu_buffer_rt.h>
-#include <visionaray/kernels.h> // for make_kernel_params(...)
-#include <visionaray/material.h>
-#include <visionaray/point_light.h>
-#include <visionaray/scheduler.h>
 
-#include <common/manip/arcball_manipulator.h>
-#include <common/manip/pan_manipulator.h>
-#include <common/manip/zoom_manipulator.h>
 #include <common/timer.h>
-#include <common/viewer_glut.h>
 
 #ifdef __CUDACC__
 #include <thrust/device_vector.h>
@@ -43,30 +29,9 @@
 
 #include "basic_quad.h"
 #include "swoop.h"
-#include "snex.h"
+#include "opt.h"
 
 using namespace visionaray;
-
-using viewer_type = viewer_glut;
-
-
-template <typename T>
-basic_quad<T> make_quad(
-        vector<3, T> v1,
-        vector<3, T> v2,
-        vector<3, T> v3,
-        vector<3, T> v4
-        )
-{
-    basic_quad<T> q;
-    q.v1 = v1;
-    q.v2 = v2;
-    q.v3 = v3;
-    q.v4 = v4;
-    // q.prim_id = 0;
-    // q.geom_id = 0;
-    return q;
-}
 
 
 #ifdef __CUDACC__
@@ -110,10 +75,10 @@ struct benchmark
     int cpu_packet_size = 1;
 
 
-    //const unsigned int quad_count = 100000;
-    //const unsigned int ray_count = (1<<18);
     // const unsigned int quad_count = 100000;
     // const unsigned int ray_count = (1<<18);
+    // const unsigned int quad_count = 10000;
+    // const unsigned int ray_count = (1<<16);
     const unsigned int quad_count = 1000;
     const unsigned int ray_count = (1<<14);
 
@@ -146,7 +111,7 @@ struct benchmark
             //vec3 center = vec3(vec3(dist(rng), dist(rng), dist(rng)));
             vec3 center = vec3(0.f);
 
-            quad_type quad = make_quad(
+            quad_type quad = quad_type::make_quad(
                     u * dist(rng) + center,
                     v * dist(rng) + center,
                     -u * dist(rng) + center,

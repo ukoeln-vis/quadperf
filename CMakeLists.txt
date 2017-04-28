@@ -43,7 +43,7 @@ include_directories(${CMD_LINE_INCLUDE_DIR})
 
 ### QUADEX ###
 
-if(CUDA_FOUND AND VSNRAY_ENABLE_CUDA AND 0)
+if(CUDA_FOUND AND VSNRAY_ENABLE_CUDA)
     visionaray_cuda_compile(EX_QUAD_CUDA_SOURCES
         main.cu
     )
@@ -57,7 +57,7 @@ endif()
 visionaray_link_libraries(visionaray)
 visionaray_link_libraries(visionaray_common)
 
-visionaray_add_executable(quadex
+visionaray_add_executable(quadbench
     ${EX_QUAD_SOURCES}
     ${EX_QUAD_CUDA_SOURCES}
 )

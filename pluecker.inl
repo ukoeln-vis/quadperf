@@ -68,18 +68,6 @@ hit_record<R, primitive<unsigned>> intersect_pluecker(R const& ray, basic_quad<f
         V2 uv = get_uv(quad, result.isect_pos);
         result.u = uv.x;
         result.v = uv.y;
-
-        //if (all(result.hit) && any( result.hit && (
-        //            uv.x < -0.1 || uv.x > 1.1 ||
-        //            uv.y < -0.1 || uv.y > 1.1
-        //            )))
-        //{
-        //    std::stringstream ss;
-        //    ss << result.hit << std::endl;
-        //    ss << uv.x << std::endl;
-        //    ss << uv.y << std::endl;
-        //    std::cout << ss.str() << std::endl;
-        //}
 #endif
     }
 

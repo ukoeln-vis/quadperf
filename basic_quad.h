@@ -5,17 +5,12 @@
 #include <iostream>
 
 #include <visionaray/detail/platform.h>
-#include <visionaray/texture/texture.h>
 #include <visionaray/aligned_vector.h>
-#include <visionaray/camera.h>
-#include <visionaray/cpu_buffer_rt.h>
-#include <visionaray/kernels.h> // for make_kernel_params(...)
-#include <visionaray/material.h>
-#include <visionaray/point_light.h>
-#include <visionaray/scheduler.h>
 
 #include <visionaray/math/math.h>
+#include <visionaray/bvh.h> // FIXME needs to be included before intersector.h
 #include <visionaray/intersector.h>
+#include <visionaray/traverse.h>
 
 #ifndef CALCULATE_UV
 #define CALCULATE_UV 1
@@ -194,8 +189,8 @@ hit_record<R, primitive<unsigned>> intersect(R const& ray, basic_quad<float> con
 {
     return detail::intersect_mt_bl_uv(ray, quad);
     // return detail::intersect_pluecker(ray, quad);
-    //return detail::intersect_project_2D(ray, quad);
-    //return detail::intersect_uv(ray, quad);
+    // return detail::intersect_project_2D(ray, quad);
+    // return detail::intersect_uv(ray, quad);
 }
 
 struct quad_intersector_mt_bl_uv : basic_intersector<quad_intersector_mt_bl_uv>

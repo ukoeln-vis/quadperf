@@ -56,17 +56,6 @@ hit_record<R, primitive<unsigned>> intersect_uv(R const& ray, basic_quad<float> 
     result.u = uv.x;
     result.v = uv.y;
 
-    //    if (any( result.hit && (
-    //                uv.y > 0.9999 && uv.y <= 1.0
-    //                )))
-    //    {
-    //        std::stringstream ss;
-    //        ss << result.hit << std::endl;
-    //        ss << uv.x << std::endl;
-    //        ss << uv.y << std::endl;
-    //        std::cout << ss.str() << std::endl;
-    //    }
-
     return result;
 }
 
