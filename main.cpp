@@ -230,7 +230,7 @@ struct benchmark
             return t.elapsed();
         }
 
-#if VSNRAY_SIMD_ISA_GE(VSNRAY_SIMD_ISA_SSE) && !defined(__CUDA_ARCH__)
+#if VSNRAY_SIMD_ISA_GE(VSNRAY_SIMD_ISA_SSE)
         else if (cpu_packet_size == 4)
         {
            timer t;
@@ -244,7 +244,7 @@ struct benchmark
         }
 #endif
 
-#if VSNRAY_SIMD_ISA_GE(VSNRAY_SIMD_ISA_AVX) && !defined(__CUDA_ARCH__)
+#if VSNRAY_SIMD_ISA_GE(VSNRAY_SIMD_ISA_AVX)
         else if (cpu_packet_size == 8)
         {
             timer t;
