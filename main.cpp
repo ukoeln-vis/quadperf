@@ -24,6 +24,10 @@
 #define ALIGNMENT 16
 #endif
 
+#ifndef ALIGNMENT
+#define ALIGNMENT 32
+#endif
+
 #define CALCULATE_UV 0
 
 #define QUAD_NS visionaray
