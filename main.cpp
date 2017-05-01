@@ -233,9 +233,10 @@ struct benchmark
         {
             timer t;
 
-            for (auto &r: rays)
+            //#pragma omp parallel for
+            for (size_t j = 0; j < rays.size(); ++j)
             {
-                volatile auto hr = closest_hit(r, quads.begin(), quads.end(), i);
+                volatile auto hr = closest_hit(rays[j], quads.begin(), quads.end(), i);
             }
 
             return t.elapsed();
@@ -246,9 +247,10 @@ struct benchmark
         {
            timer t;
 
-           for (auto &r: rays_cpu4)
+           //#pragma omp parallel for
+           for (size_t j = 0; j < rays_cpu4.size(); ++j)
            {
-               volatile auto hr = closest_hit(r, quads.begin(), quads.end(), i);
+               volatile auto hr = closest_hit(rays_cpu4[j], quads.begin(), quads.end(), i);
            }
 
            return t.elapsed();
@@ -260,9 +262,10 @@ struct benchmark
         {
             timer t;
 
-            for (auto &r: rays_cpu8)
+            //#pragma omp parallel for
+            for (size_t j = 0; j < rays_cpu8.size(); ++j)
             {
-                volatile auto hr = closest_hit(r, quads.begin(), quads.end(), i);
+                volatile auto hr = closest_hit(rays_cpu8[j], quads.begin(), quads.end(), i);
             }
 
             return t.elapsed();
@@ -275,9 +278,9 @@ struct benchmark
             timer t;
 
             //#pragma omp parallel for
-            for (auto &r: rays_cpu16)
+            for (size_t j = 0; j < rays_cpu16.size(); ++j)
             {
-                volatile auto hr = closest_hit(r, quads.begin(), quads.end(), i);
+                volatile auto hr = closest_hit(rays_cpu16[j], quads.begin(), quads.end(), i);
             }
 
             return t.elapsed();
