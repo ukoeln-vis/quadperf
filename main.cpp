@@ -1,6 +1,7 @@
 // This file is distributed under the MIT license.
 // See the LICENSE file for details.
 
+#include <fstream>
 #include <iostream>
 #include <random>
 
@@ -83,12 +84,12 @@ struct benchmark
     int cpu_packet_size = 1;
 
 
-    // const unsigned int quad_count = 100000;
-    // const unsigned int ray_count = (1<<18);
-    // const unsigned int quad_count = 10000;
-    // const unsigned int ray_count = (1<<16);
-    const unsigned int quad_count = 1000;
-    const unsigned int ray_count = (1<<14);
+    const unsigned int gen_quad_count = 100000;
+    const unsigned int gen_ray_count = (1<<18);
+    // const unsigned int gen_quad_count = 10000;
+    // const unsigned int gen_ray_count = (1<<16);
+    // const unsigned int gen_quad_count = 1000;
+    // const unsigned int gen_ray_count = (1<<14);
 
 
     typedef std::default_random_engine rand_engine;
@@ -109,7 +110,7 @@ struct benchmark
 
     void generate_quads()
     {
-        for (size_t i=0; i<quad_count; i++)
+        for (size_t i=0; i<gen_quad_count; i++)
         {
             vec3 u;
             vec3 v;
@@ -146,7 +147,7 @@ struct benchmark
 
     void generate_rays()
     {
-        for (size_t i=0; i<ray_count; i++)
+        for (size_t i=0; i<gen_ray_count; i++)
         {
             ray r;
 
@@ -158,6 +159,66 @@ struct benchmark
 
             rays.push_back(r);
         }
+    }
+
+    void save_quads_to_file(std::string filename)
+    {
+        std::ofstream file;
+        file.open(filename, std::ios::out | std::ios::trunc | std::ios::binary);
+        file.write((char*)quads.data(), sizeof(quad_type) * quads.size());
+        file.close();
+    }
+
+    void load_quads_from_file(std::string filename)
+    {
+        quads.clear();
+        quads_opt.clear();
+        quads_swoop.clear();
+
+        std::ifstream file;
+        quad_type q;
+
+        file.open(filename, std::ios::in | std::ios::binary);
+        while (true)
+        {
+            file.read((char*)&q, sizeof(quad_type));
+            if (!file)
+                break;
+
+            quads.push_back(q);
+            quads_opt.push_back(quad_type_opt::make_quad(q.v1, q.v2, q.v3, q.v4));
+            quads_swoop.push_back(quad_type_swoop::make_quad(q.v1, q.v2, q.v3, q.v4));
+        }
+        file.close();
+
+        std::cout << "Loaded " << quads.size() << " quads." << std::endl;
+    }
+
+    void save_rays_to_file(std::string filename)
+    {
+        std::ofstream file;
+        file.open(filename, std::ios::out | std::ios::trunc | std::ios::binary);
+        file.write((char*)rays.data(), sizeof(ray_type) * rays.size());
+        file.close();
+    }
+
+    void load_rays_from_file(std::string filename)
+    {
+        rays.clear();
+
+        std::ifstream file;
+        ray_type r;
+
+        file.open(filename, std::ios::in | std::ios::binary);
+        while (true)
+        {
+            if (!file.read((char*)&r, sizeof(ray_type)))
+                break;
+            rays.push_back(r);
+        }
+        file.close();
+
+        std::cout << "Loaded " << rays.size() << " rays." << std::endl;
     }
 
     template <typename V1, typename V2>
@@ -311,7 +372,7 @@ struct benchmark
     double run_cuda_test()
     {
         dim3 block_size(cuda_block_size);
-        dim3 grid_size(div_up(ray_count, block_size.x));
+        dim3 grid_size(div_up(d_rays.size(), block_size.x));
 
         // int min_block_size;
         // int min_grid_size;
@@ -325,7 +386,7 @@ struct benchmark
 
             cuda_kernel<quad_intersector_opt> <<<grid_size, block_size>>> (
                     thrust::raw_pointer_cast(d_rays.data()),
-                    ray_count,
+                    d_rays.size(),
                     thrust::raw_pointer_cast(d_quads_opt.data()),
                     thrust::raw_pointer_cast(d_quads_opt.data()) + d_quads_opt.size(),
                     thrust::raw_pointer_cast(output_ts.data())
@@ -339,7 +400,7 @@ struct benchmark
 
             cuda_kernel<quad_intersector_mt_bl_uv> <<<grid_size, block_size>>> (
                     thrust::raw_pointer_cast(d_rays.data()),
-                    ray_count,
+                    d_rays.size(),
                     thrust::raw_pointer_cast(d_quads.data()),
                     thrust::raw_pointer_cast(d_quads.data()) + d_quads.size(),
                     thrust::raw_pointer_cast(output_ts.data())
@@ -353,7 +414,7 @@ struct benchmark
 
             cuda_kernel<quad_intersector_pluecker> <<<grid_size, block_size>>> (
                     thrust::raw_pointer_cast(d_rays.data()),
-                    ray_count,
+                    d_rays.size(),
                     thrust::raw_pointer_cast(d_quads.data()),
                     thrust::raw_pointer_cast(d_quads.data()) + d_quads.size(),
                     thrust::raw_pointer_cast(output_ts.data())
@@ -367,7 +428,7 @@ struct benchmark
 
             cuda_kernel<quad_intersector_project_2D> <<<grid_size, block_size>>> (
                     thrust::raw_pointer_cast(d_rays.data()),
-                    ray_count,
+                    d_rays.size(),
                     thrust::raw_pointer_cast(d_quads.data()),
                     thrust::raw_pointer_cast(d_quads.data()) + d_quads.size(),
                     thrust::raw_pointer_cast(output_ts.data())
@@ -381,7 +442,7 @@ struct benchmark
 
             cuda_kernel<quad_intersector_uv> <<<grid_size, block_size>>> (
                     thrust::raw_pointer_cast(d_rays.data()),
-                    ray_count,
+                    d_rays.size(),
                     thrust::raw_pointer_cast(d_quads.data()),
                     thrust::raw_pointer_cast(d_quads.data()) + d_quads.size(),
                     thrust::raw_pointer_cast(output_ts.data())
@@ -395,7 +456,7 @@ struct benchmark
 
             cuda_kernel<quad_intersector_swoop> <<<grid_size, block_size>>> (
                     thrust::raw_pointer_cast(d_rays.data()),
-                    ray_count,
+                    d_rays.size(),
                     thrust::raw_pointer_cast(d_quads_swoop.data()),
                     thrust::raw_pointer_cast(d_quads_swoop.data()) + d_quads_swoop.size(),
                     thrust::raw_pointer_cast(output_ts.data())
@@ -423,7 +484,9 @@ int main(int argc, char** argv)
 
     int do_cuda_test = 0;
 
-    std::string name = "opt";
+    std::string algorithm_name = "opt";
+    std::string ray_file = "rays.data";
+    std::string quad_file = "quads.data";
 
 
     using namespace support;
@@ -442,7 +505,7 @@ int main(int argc, char** argv)
             cl::Parser<>(), cmd, "intersect",
             cl::ArgName("intersect"),
             cl::ArgRequired,
-            cl::init(name),
+            cl::init(algorithm_name),
             cl::Desc("Intersection algorithm")
             );
 
@@ -458,6 +521,20 @@ int main(int argc, char** argv)
             cl::ArgName("cpu_packet_size"),
             cl::init(cpu_packet_size),
             cl::Desc("CPU simd packet size (1,4,8,16)")
+            );
+
+    auto rfref = cl::makeOption<std::string&>(
+            cl::Parser<>(), cmd, "ray_file",
+            cl::ArgName("ray_file"),
+            cl::init(ray_file),
+            cl::Desc("File from which to load ray data")
+            );
+
+    auto qfref = cl::makeOption<std::string&>(
+            cl::Parser<>(), cmd, "quad_file",
+            cl::ArgName("quad_file"),
+            cl::init(quad_file),
+            cl::Desc("File from which to load quad data")
             );
 
     try
@@ -478,7 +555,9 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    benchmark b(name, do_cuda_test);
+    benchmark b(algorithm_name, do_cuda_test);
+    b.load_rays_from_file(ray_file);
+    b.load_quads_from_file(quad_file);
     b.init();
     b.cuda_block_size = bs;
     b.cpu_packet_size = cpu_packet_size;
@@ -496,7 +575,7 @@ int main(int argc, char** argv)
 
     std::sort(times.begin(), times.end());
     double sum = std::accumulate(times.begin(), times.end(), 0.0);
-    std::cout << "Benchmark:   " << name << '\n';
+    std::cout << "Benchmark:   " << algorithm_name << '\n';
     if (do_cuda_test)
     std::cout << "CUDA grid:   " << div_up((int)b.rays.size(), b.cuda_block_size) << " blocks of size " << b.cuda_block_size << '\n';
     else
