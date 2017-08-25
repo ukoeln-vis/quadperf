@@ -6,7 +6,6 @@
 #include <visionaray/get_normal.h>
 #include <visionaray/get_shading_normal.h>
 #include <visionaray/get_tex_coord.h>
-#include <visionaray/bvh.h> // FIXME needs to be included before intersector.h
 #include <visionaray/intersector.h>
 
 #ifndef CALCULATE_UV
